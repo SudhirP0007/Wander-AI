@@ -3,7 +3,8 @@
 
 const express = require('express');
 const { requireAuth } = require('../middleware/auth');
-const { getFlightOffers, getHotelOffers } = require('../services/amadeusService');
+const { getHotelOffers } = require('../services/amadeusService');
+const { getFlightOffers } = require('../services/skyScraperService');
 
 const router = express.Router();
 
