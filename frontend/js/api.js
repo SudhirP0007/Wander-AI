@@ -115,6 +115,7 @@ const Api = (() => {
     getRecommendations: () => request('/api/recommendations/destinations'),
     getFlights: (destination) => request(`/api/recommendations/flights?destination=${encodeURIComponent(destination)}`),
     getHotels: (destination) => request(`/api/recommendations/hotels?destination=${encodeURIComponent(destination)}`),
+    getRestaurants: (destination) => request(`/api/recommendations/restaurants?destination=${encodeURIComponent(destination)}`),
 
     // Map
     getDayStops: (itineraryId, dayNumber) => request(`/api/map/itineraries/${itineraryId}/days/${dayNumber}`),

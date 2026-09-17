@@ -6,6 +6,7 @@
 <title>WanderAI — AI Travel Planner</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Instrument+Serif&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
 </head>
 <body>
 <div class="app">
@@ -16,13 +17,6 @@
 <div class="brand-mark">W</div>
 <span>Wander<em style="color:var(--brand);font-style:normal">AI</em></span>
 </div>
-<!--
-Sitemap-aligned primary nav (per Requirements Analysis §4.5):
-Home / Plan Trip / Itinerary / Recommendations / Budget Planner /
-Map View / Help-Support / Account.
-"Chat" is intentionally NOT a top-level tab — it is the Chatbot
-Assistant sub-step of Plan Trip, reached via the sub-tabs below.
--->
 <nav class="primary">
 <button data-screen="home" class="active">Home</button>
 <button data-screen="plan">Plan Trip</button>
@@ -50,7 +44,6 @@ Assistant sub-step of Plan Trip, reached via the sub-tabs below.
 <h1 class="hero-title">Your personal<br><em>AI travel planner</em>.</h1>
 <p class="hero-sub">Tell us where you'd like to go. We'll craft a day-by-day itinerary with weather, real prices and routes — personalised to your budget and pace.</p>
 
-<!-- Chat-style hero input feeds straight into Plan Trip's Chatbot Assistant sub-step -->
 <div class="chat-hero">
 <div class="chat-input-row">
 <input id="home-chat-input" placeholder="Ask anything — e.g. '5 days in Tokyo on a mid budget, food &amp; architecture'"/>
@@ -119,13 +112,11 @@ Assistant sub-step of Plan Trip, reached via the sub-tabs below.
 <p>Tell us a few details and our AI will design a day-by-day itinerary.</p>
 </div>
 
-<!-- Sub-tabs match the sitemap: Plan Trip -> Travel Details, Chatbot Assistant -->
 <div class="auth-tabs" style="max-width:420px;">
 <button class="auth-tab active" data-plan-tab="details" onclick="WanderAI.switchPlanTab('details')">Travel details</button>
 <button class="auth-tab" data-plan-tab="chat" onclick="WanderAI.switchPlanTab('chat')">Chatbot assistant</button>
 </div>
 
-<!-- ---- Travel Details form ---- -->
 <div class="auth-pane active" id="plan-details" style="margin-top:20px;">
 <form class="form-card" id="plan-form" novalidate>
 <div class="field-row">
@@ -198,7 +189,6 @@ Assistant sub-step of Plan Trip, reached via the sub-tabs below.
 </form>
 </div>
 
-<!-- ---- Chatbot Assistant sub-step ---- -->
 <div class="auth-pane" id="plan-chat" style="margin-top:20px;">
 <div class="chat-page" style="height:auto;max-width:100%;padding:0;">
 <div class="chat-msgs" id="chat-msgs" style="max-height:420px;border:1px solid var(--line);border-radius:var(--radius);padding:20px;background:var(--bg-elev);">
@@ -258,9 +248,23 @@ Assistant sub-step of Plan Trip, reached via the sub-tabs below.
 </div>
 
 <div class="budget-card">
-<strong>Real-time prices · Amadeus</strong>
+<strong>Flights</strong>
 <div style="margin-top:14px;" id="budget-prices">
-<p style="color:var(--ink-muted);font-size:14px;">Generate an itinerary to see live flight &amp; hotel comparisons.</p>
+<p style="color:var(--ink-muted);font-size:14px;">Generate an itinerary to see flight options.</p>
+</div>
+</div>
+
+<div class="budget-card">
+<strong>Hotels</strong>
+<div style="margin-top:14px;" id="budget-hotels">
+<p style="color:var(--ink-muted);font-size:14px;">Generate an itinerary to see hotel options.</p>
+</div>
+</div>
+
+<div class="budget-card">
+<strong>Food &amp; Restaurants</strong>
+<div style="margin-top:14px;" id="budget-restaurants">
+<p style="color:var(--ink-muted);font-size:14px;">Generate an itinerary to see restaurant options.</p>
 </div>
 </div>
 
@@ -281,7 +285,7 @@ Assistant sub-step of Plan Trip, reached via the sub-tabs below.
 </div>
 </div>
 <div class="map-canvas" id="map-canvas">
-<svg class="map-route" id="map-route" viewBox="0 0 100 100" preserveAspectRatio="none"></svg>
+<div id="leaflet-map" style="width:100%;height:100%;min-height:520px;"></div>
 </div>
 </div>
 </section>
@@ -352,7 +356,6 @@ Assistant sub-step of Plan Trip, reached via the sub-tabs below.
 <section class="screen" id="screen-account">
 <div class="page" style="max-width: 1180px;">
 
-<!-- Signed-out state: Signup/Login -->
 <div id="account-guest">
 <div class="page-header">
 <h1>Welcome to WanderAI.</h1>
@@ -408,7 +411,6 @@ Already have an account?
 </form>
 </div>
 
-<!-- Signed-in state -->
 <div id="account-user" style="display:none;">
 <div class="page-header" style="margin-bottom:24px;">
 <h1 id="account-welcome">Welcome back.</h1>
@@ -499,6 +501,7 @@ Already have an account?
 </footer>
 </div>
 
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 <script src="js/api.js"></script>
 <script src="js/app.js"></script>
 </body>

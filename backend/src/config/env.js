@@ -35,8 +35,8 @@ amadeus: {
 clientId: process.env.AMADEUS_CLIENT_ID || '',
 clientSecret: process.env.AMADEUS_CLIENT_SECRET || '',
 },
-googleMaps: {
-apiKey: process.env.GOOGLE_MAPS_API_KEY || '',
+geoapify: {
+apiKey: process.env.GEOAPIFY_API_KEY || '',
 },
 openWeatherMap: {
 apiKey: process.env.OPENWEATHERMAP_API_KEY || '',

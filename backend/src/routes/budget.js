@@ -1,7 +1,7 @@
-// FR-13: budget summary — estimated cost vs. stated budget.
-
 const express = require('express');
 const { requireAuth } = require('../middleware/auth');
+const { getHotelOffers } = require('../services/amadeusService');
+const { getFlightOffers } = require('../services/skyScraperService');
 
 const router = express.Router();
 
@@ -29,9 +29,6 @@ router.get('/itineraries/:id', requireAuth, async (req, res, next) => {
       .eq('itinerary_id', id);
     if (dayErr) throw dayErr;
 
-    // Very simple category split, illustrative of a real cost-breakdown
-    // engine: activities' costs count as "Food"/"Activities" by keyword,
-    // plus fixed shares assumed for flights/accommodation.
     let foodCost = 0;
     let activityCost = 0;
     (days || []).forEach((d) => {
@@ -42,13 +39,32 @@ router.get('/itineraries/:id', requireAuth, async (req, res, next) => {
       });
     });
 
-    const flightsCost = Math.round((itinerary.budget || 0) * 0.24);
-    const accomCost = Math.round((itinerary.budget || 0) * 0.38);
+    // Base flights/accommodation on this destination's real (or
+    // mock-but-destination-specific) prices instead of a fixed
+    // percentage of the budget, so different destinations actually
+    // produce different breakdowns.
+    const dayCount = days?.length || 1;
+    let flightsCost;
+    let accomCost;
+    try {
+      const flights = await getFlightOffers(itinerary.destination, 'Sydney');
+      flightsCost = flights.length ? Math.min(...flights.map((f) => f.price)) : Math.round((itinerary.budget || 0) * 0.24);
+    } catch {
+      flightsCost = Math.round((itinerary.budget || 0) * 0.24);
+    }
+    try {
+      const hotels = await getHotelOffers(itinerary.destination);
+      const nightly = hotels.length ? Math.min(...hotels.map((h) => h.price_per_night)) : null;
+      accomCost = nightly != null ? nightly * dayCount : Math.round((itinerary.budget || 0) * 0.38);
+    } catch {
+      accomCost = Math.round((itinerary.budget || 0) * 0.38);
+    }
+
     const transportCost = Math.round((foodCost + activityCost) * 0.2);
 
     const breakdown = [
-      { category: 'Accommodation', amount: accomCost, color: CATEGORY_COLORS.Accommodation },
-      { category: 'Flights', amount: flightsCost, color: CATEGORY_COLORS.Flights },
+      { category: 'Accommodation', amount: Math.round(accomCost), color: CATEGORY_COLORS.Accommodation },
+      { category: 'Flights', amount: Math.round(flightsCost), color: CATEGORY_COLORS.Flights },
       { category: 'Food', amount: Math.round(foodCost), color: CATEGORY_COLORS.Food },
       { category: 'Activities', amount: Math.round(activityCost), color: CATEGORY_COLORS.Activities },
       { category: 'Transport', amount: Math.round(transportCost), color: CATEGORY_COLORS.Transport },
