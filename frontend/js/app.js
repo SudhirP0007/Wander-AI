@@ -148,7 +148,7 @@ const WanderAI = (() => {
 
   function extractDestination(text) {
     const m = text.match(
-      /\b(?:to|in|visit|for|trip to)\s+([a-zA-Z][a-zA-Z\s]{2,25}?)(?:\s+on|\s+for|\s+with|\s+solo|\s+alone|,|\.|$)/i
+      /\b(?:to|in|visit|for|trip to|around|near|through)\s+([a-zA-Z][a-zA-Z\s]{2,25}?)(?:\s+on|\s+for|\s+with|\s+solo|\s+alone|\s+under|\s+starting|,|\.|$)/i
     );
     if (!m) return null;
     const d = m[1].trim();
@@ -706,7 +706,7 @@ const WanderAI = (() => {
         leafletRouteLine = L.polyline(latLngs, { color: '#E07A3C', weight: 3, dashArray: '6 8' }).addTo(leafletMap);
         setTimeout(() => {
           leafletMap.invalidateSize();
-          leafletMap.fitBounds(latLngs, { padding: [40, 40] });
+          leafletMap.fitBounds(latLngs, { padding: [40, 40], maxZoom: 15 });
         }, 300);
       } else {
         leafletMap.setView([20, 0], 2);
