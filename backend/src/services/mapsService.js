@@ -118,4 +118,31 @@ async function enrichActivitiesWithCoordinates(destination, activities) {
   );
 }
 
-module.exports = { geocodePlace, enrichActivitiesWithCoordinates, centerFor };
+/** Search nearby places (restaurants, hotels) via Geoapify Places API. */
+async function searchPlaces(destination, category, limit = 8) {
+  const center = await centerFor(destination);
+  if (!env.geoapify.apiKey) return [];
+  try {
+    const res = await fetch(
+      `https://api.geoapify.com/v2/places?categories=${category}&filter=circle:${center.lng},${center.lat},5000&bias=proximity:${center.lng},${center.lat}&limit=${limit}&apiKey=${env.geoapify.apiKey}`
+    );
+    if (!res.ok) {
+      console.warn(`[mapsService] Places search HTTP ${res.status} for "${category}" in "${destination}"`);
+      return [];
+    }
+    const json = await res.json();
+    return (json.features || [])
+      .map((f) => ({
+        name: f.properties.name || null,
+        address: f.properties.formatted || '',
+        lat: f.properties.lat,
+        lng: f.properties.lon,
+      }))
+      .filter((p) => p.name);
+  } catch (err) {
+    console.warn('[mapsService] Places search failed:', err.message);
+    return [];
+  }
+}
+
+module.exports = { geocodePlace, enrichActivitiesWithCoordinates, centerFor, searchPlaces };

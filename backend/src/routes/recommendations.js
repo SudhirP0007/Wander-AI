@@ -2,6 +2,7 @@ const express = require('express');
 const { requireAuth } = require('../middleware/auth');
 const { getHotelOffers } = require('../services/amadeusService');
 const { getFlightOffers } = require('../services/skyScraperService');
+const { searchPlaces } = require('../services/mapsService');
 
 const router = express.Router();
 
@@ -64,10 +65,17 @@ router.get('/hotels', requireAuth, async (req, res, next) => {
   try {
     const { destination } = req.query;
     if (!destination) return res.status(400).json({ error: 'destination is required.' });
+
     const hotels = await getHotelOffers(destination);
-    const withLinks = hotels.map(function (h) {
+    const places = await searchPlaces(destination, 'accommodation.hotel', hotels.length || 8);
+
+    const withLinks = hotels.map(function (h, i) {
+      const place = places[i];
+      const name = place ? place.name : h.name;
       return Object.assign({}, h, {
-        search_url: 'https://www.google.com/search?q=' + encodeURIComponent(h.name + ' ' + destination),
+        name,
+        address: place ? place.address : h.address,
+        search_url: 'https://www.google.com/search?q=' + encodeURIComponent(name + ' ' + destination),
       });
     });
     res.json({ hotels: withLinks });
@@ -80,6 +88,27 @@ router.get('/restaurants', requireAuth, async (req, res, next) => {
   try {
     const { destination } = req.query;
     if (!destination) return res.status(400).json({ error: 'destination is required.' });
+
+    const places = await searchPlaces(destination, 'catering.restaurant', 8);
+    if (places.length) {
+      const priceRanges = ['$', '$$', '$$$', '$$$$'];
+      const restaurants = places
+        .map(function (place, i) {
+          return {
+            name: place.name,
+            address: place.address,
+            cuisine: 'Local',
+            price_range: priceRanges[i % priceRanges.length],
+            avg_meal_cost: seededPrice(place.name + destination, 8, 90),
+            currency: 'AUD',
+            guest_rating: Math.max(6.5, 9.0 - (i % 4) * 0.3).toFixed(1),
+            search_url: 'https://www.google.com/search?q=' + encodeURIComponent(place.name + ' ' + destination + ' restaurant'),
+          };
+        })
+        .sort(function (a, b) { return a.avg_meal_cost - b.avg_meal_cost; });
+      return res.json({ restaurants });
+    }
+
     res.json({ restaurants: mockRestaurants(destination) });
   } catch (err) {
     next(err);

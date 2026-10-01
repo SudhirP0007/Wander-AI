@@ -99,15 +99,17 @@ source: 'sky-scrapper',
 }
 
 async function getFlightOffers(destination, originCity = 'Sydney', date) {
-if (env.rapidApi.key) {
-try {
-const real = await getFlightOffersReal(destination, originCity, date);
-if (real.length) return real;
-} catch (err) {
-console.warn('[skyScraperService] Falling back to mock flights:', err.message);
-}
-}
-return mockFlights(destination, originCity);
+  let flights;
+  if (env.rapidApi.key) {
+    try {
+      const real = await getFlightOffersReal(destination, originCity, date);
+      flights = real.length ? real : null;
+    } catch (err) {
+      console.warn('[skyScraperService] Falling back to mock flights:', err.message);
+    }
+  }
+  if (!flights) flights = mockFlights(destination, originCity);
+  return flights.slice().sort((a, b) => (a.price ?? Infinity) - (b.price ?? Infinity));
 }
 
 module.exports = { getFlightOffers };
